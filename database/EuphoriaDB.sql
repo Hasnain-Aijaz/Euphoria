@@ -1,0 +1,5 @@
+CREATE DATABASE EuphoriaDB;
+GO
+
+USE EuphoriaDB;
+GO
