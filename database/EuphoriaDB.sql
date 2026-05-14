@@ -3,3 +3,30 @@ GO
 
 USE EuphoriaDB;
 GO
+
+CREATE TABLE users (
+	id INT PRIMARY KEY IDENTITY(1,1),
+	name VARCHAR(50) NOT NULL UNIQUE,
+	password_hash VARCHAR(255) NOT NULL ,
+	email VARCHAR(100) NOT NULL UNIQUE,
+	profile_img_url VARCHAR(255),
+	created_at DATETIME2 DEFAULT GETDATE()
+)
+
+CREATE TABLE artists (
+	id INT PRIMARY KEY IDENTITY(1,1),
+	name VARCHAR(50) NOT NULL UNIQUE,
+	bio VARCHAR(1000),
+	img_url VARCHAR(255)
+)
+
+CREATE TABLE albums (
+	id INT PRIMARY KEY IDENTITY(1,1),
+	artist_id INT NOT NULL,
+	title VARCHAR(100),
+	cover_img_url VARCHAR(255),
+	release_date DATETIME2,
+	CONSTRAINT FOREIGN KEY 
+	artist_id REFERENCES artists(id) 
+	DELETE ON CASCADE
+)
