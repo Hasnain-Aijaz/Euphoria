@@ -1,0 +1,8 @@
+#spring:
+#  datasource:
+#    url: jdbc:sqlserver://localhost:1433;databaseName=EuphoriaDB;encrypt=true;trustServerCertificate=true
+#    username: has9
+#    password: 2244
+#    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+#  jpa:
+#    show-sql: true
