@@ -1,22 +1,33 @@
 package com.music.euphoria.entity;
 
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
+@Entity
+@Table(name = "users")
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String name;
 
-    public int getId() {
-        return id;
-    }
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 
-    public String getName() {
-        return name;
-    }
+    @Column(nullable = false, unique = true)
+    private String email;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    @Column(name = "profile_img_url")
+    private String profileImgUrl;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 }
