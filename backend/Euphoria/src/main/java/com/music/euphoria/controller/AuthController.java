@@ -3,10 +3,8 @@ package com.music.euphoria.controller;
 import com.music.euphoria.dto.LoginRequest;
 import com.music.euphoria.dto.RegisterRequest;
 import com.music.euphoria.service.AuthService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -18,15 +16,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody RegisterRequest request) {
+    public String registerUser(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return "User Added Successfully";
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        authService.login(request);
-        return "Logged In Successfully";
+    public String login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
     }
 
 }

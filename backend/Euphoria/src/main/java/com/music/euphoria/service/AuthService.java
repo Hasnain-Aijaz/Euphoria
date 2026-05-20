@@ -5,19 +5,29 @@ import com.music.euphoria.dto.LoginRequest;
 import com.music.euphoria.entity.User;
 import com.music.euphoria.repository.UserRepository;
 import com.music.euphoria.dto.RegisterRequest;
+import com.music.euphoria.security.JwtService;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void register(RegisterRequest request) {
@@ -25,12 +35,17 @@ public class AuthService {
                 userRepository.findByEmail(request.getEmail());
 
         if(existingUser.isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new ResponseStatusException(CONFLICT, "Email already exists");
         }
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        Optional<User> existingUsername =
+                userRepository.findByUsername(request.getUsername());
 
-        String hashedPassword = encoder.encode(request.getPassword());
+        if(existingUsername.isPresent()) {
+            throw new ResponseStatusException(CONFLICT, "Username already exists");
+        }
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User();
         user.setEmail(request.getEmail());
@@ -40,26 +55,25 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public void login(LoginRequest request) {
+    public String login(LoginRequest request) {
         Optional<User> user =
                 userRepository.findByEmail(request.getEmail());
 
         if(user.isEmpty()) {
-            throw new RuntimeException("No user found with this email");
+            throw new ResponseStatusException(UNAUTHORIZED, "Invalid email or password");
         }
 
         //Password
         User existingUser = user.get();
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
         // encoder.matches returns a boolean value.
-        boolean passwordMatches = encoder.matches(request.getPassword(), existingUser.getPasswordHash()); // encoder.matches returns a boolean value.
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), existingUser.getPasswordHash()); // encoder.matches returns a boolean value.
 
         if(!passwordMatches) {
-            throw new RuntimeException("Incorrect Password");
+            throw new ResponseStatusException(UNAUTHORIZED, "Invalid email or password");
         }
-
+        String token = jwtService.generateToken(existingUser.getEmail());
+        return token;
     }
 
 
