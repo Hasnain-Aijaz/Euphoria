@@ -4,14 +4,18 @@ GO
 USE EuphoriaDB;
 GO
 
+
 CREATE TABLE users (
 	id INT PRIMARY KEY IDENTITY(1,1),
 	username VARCHAR(50) NOT NULL UNIQUE,
 	password_hash VARCHAR(255) NOT NULL ,
 	email VARCHAR(100) NOT NULL UNIQUE,
+	role VARCHAR(20) NOT NULL DEFAULT 'USER',
 	profile_img_url VARCHAR(255),
 	created_at DATETIME2 DEFAULT GETDATE()
 )
+
+UPDATE users SET role = 'ADMIN' WHERE email = 'hasnainaijaz123@gmail.com';
 
 CREATE TABLE artists (
 	id INT PRIMARY KEY IDENTITY(1,1),
@@ -19,6 +23,8 @@ CREATE TABLE artists (
 	bio VARCHAR(1000),
 	img_url VARCHAR(255)
 )
+
+
 
 CREATE TABLE albums (
 	id INT PRIMARY KEY IDENTITY(1,1),
@@ -80,11 +86,6 @@ CREATE TABLE playlists (
 
 
 
--- =========================================
--- PLAYLIST SONGS
--- MANY TO MANY RELATIONSHIP
--- =========================================
-
 CREATE TABLE playlist_songs (
     playlist_id INT NOT NULL,
 
@@ -106,10 +107,6 @@ CREATE TABLE playlist_songs (
 );
 
 
-
--- =========================================
--- LIKED SONGS
--- =========================================
 
 CREATE TABLE liked_songs (
     user_id INT NOT NULL,
@@ -133,9 +130,7 @@ CREATE TABLE liked_songs (
 
 
 
--- =========================================
--- LISTENING HISTORY
--- =========================================
+
 
 CREATE TABLE listening_history (
     id INT PRIMARY KEY IDENTITY(1,1),

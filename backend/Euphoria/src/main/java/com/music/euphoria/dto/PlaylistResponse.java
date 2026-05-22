@@ -1,6 +1,7 @@
 package com.music.euphoria.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.*;
 
 @Getter
@@ -14,4 +15,5 @@ public class PlaylistResponse {
     private String playlistName;
     private String description;
     private LocalDateTime createdAt;
+    private List<SongSummaryResponse> songs;
 }

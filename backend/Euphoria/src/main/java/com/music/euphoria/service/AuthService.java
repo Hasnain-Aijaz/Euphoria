@@ -72,7 +72,7 @@ public class AuthService {
         if(!passwordMatches) {
             throw new ResponseStatusException(UNAUTHORIZED, "Invalid email or password");
         }
-        String token = jwtService.generateToken(existingUser.getEmail());
+        String token = jwtService.generateToken(existingUser.getEmail(), existingUser.getRole());
         return token;
     }
 

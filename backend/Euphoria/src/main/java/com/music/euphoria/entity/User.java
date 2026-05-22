@@ -27,6 +27,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @Column(name = "profile_img_url")
     private String profileImgUrl;
 

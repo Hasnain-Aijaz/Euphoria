@@ -22,9 +22,13 @@ public class SongController {
         return songService.getAllSongs();
     }
 
-    @PostMapping
-    public Song createSong(@Valid @RequestBody CreateSongRequest request) {
-        return songService.createSong(request);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public Song createSong(
+            @Valid @RequestPart("song") CreateSongRequest request,
+            @RequestPart(value = "audio", required = false) org.springframework.web.multipart.MultipartFile audioFile,
+            @RequestPart(value = "thumbnail", required = false) org.springframework.web.multipart.MultipartFile thumbnailFile
+    ) {
+        return songService.createSong(request, audioFile, thumbnailFile);
     }
 
     @GetMapping("/{id}")

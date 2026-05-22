@@ -2,6 +2,7 @@ package com.music.euphoria.service;
 
 import com.music.euphoria.dto.CreatePlaylistRequest;
 import com.music.euphoria.dto.PlaylistResponse;
+import com.music.euphoria.dto.SongSummaryResponse;
 import com.music.euphoria.entity.PlaylistSong;
 import com.music.euphoria.entity.PlaylistSongId;
 import com.music.euphoria.entity.Song;
@@ -11,6 +12,7 @@ import com.music.euphoria.repository.PlaylistRepository;
 import com.music.euphoria.repository.PlaylistSongRepository;
 import com.music.euphoria.repository.SongRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
+@Transactional
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final PlaylistSongRepository playlistSongRepository;
@@ -69,16 +72,19 @@ public class PlaylistService {
         Song song = songRepository.findById(songId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Song not found"));
 
-        if (playlistSongRepository.existsByPlaylistIdAndSongId(playlistId, songId)) {
+        PlaylistSongId psId = new PlaylistSongId(playlistId, songId);
+        if (playlistSongRepository.existsById(psId)) {
             throw new ResponseStatusException(CONFLICT, "Song already exists in playlist");
         }
 
         PlaylistSong playlistSong = new PlaylistSong();
-        playlistSong.setId(new PlaylistSongId(playlistId, songId));
+        playlistSong.setId(psId);
         playlistSong.setPlaylist(playlist);
         playlistSong.setSong(song);
         playlistSong.setAddedAt(LocalDateTime.now());
-        playlistSongRepository.save(playlistSong);
+        
+        playlist.getPlaylistSongs().add(playlistSong);
+        playlistRepository.save(playlist);
 
         return toPlaylistResponse(playlist);
     }
@@ -86,11 +92,16 @@ public class PlaylistService {
     public PlaylistResponse removeSongFromPlaylist(int playlistId, int songId) {
         Playlist playlist = getOwnedPlaylist(playlistId);
 
-        if (!playlistSongRepository.existsByPlaylistIdAndSongId(playlistId, songId)) {
+        // Find and remove from the collection to maintain state and trigger orphan removal
+        boolean removed = playlist.getPlaylistSongs().removeIf(ps -> 
+            ps.getPlaylist().getId() == playlistId && ps.getSong().getId() == songId
+        );
+
+        if (!removed) {
             throw new ResponseStatusException(NOT_FOUND, "Song is not in this playlist");
         }
 
-        playlistSongRepository.deleteByPlaylistIdAndSongId(playlistId, songId);
+        playlistRepository.save(playlist);
         return toPlaylistResponse(playlist);
     }
 
@@ -102,13 +113,40 @@ public class PlaylistService {
     private PlaylistResponse toPlaylistResponse(Playlist playlist) {
         User user = playlist.getUser();
 
+        List<SongSummaryResponse> songs = playlist.getPlaylistSongs()
+                .stream()
+                .map(PlaylistSong::getSong)
+                .map(this::toSongSummary)
+                .toList();
+
         return new PlaylistResponse(
                 playlist.getId(),
                 user.getId(),
                 user.getUsername(),
                 playlist.getPlaylistName(),
                 playlist.getDescription(),
-                playlist.getCreatedAt()
+                playlist.getCreatedAt(),
+                songs
+        );
+    }
+
+    private SongSummaryResponse toSongSummary(Song song) {
+        String artistName = song.getArtist() != null ? song.getArtist().getName() : null;
+        Integer albumId = song.getAlbum() != null ? song.getAlbum().getId() : null;
+        String albumTitle = song.getAlbum() != null ? song.getAlbum().getTitle() : null;
+
+        return new SongSummaryResponse(
+                song.getId(),
+                song.getTitle(),
+                artistName,
+                albumId,
+                albumTitle,
+                song.getGenre(),
+                song.getDurationSeconds(),
+                song.getAudioUrl(),
+                song.getThumbnailUrl(),
+                song.getPlayCount(),
+                song.getUploadedAt()
         );
     }
 

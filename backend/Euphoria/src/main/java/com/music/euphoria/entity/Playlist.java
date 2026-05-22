@@ -27,4 +27,7 @@ public class Playlist {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<PlaylistSong> playlistSongs = new java.util.ArrayList<>();
 }

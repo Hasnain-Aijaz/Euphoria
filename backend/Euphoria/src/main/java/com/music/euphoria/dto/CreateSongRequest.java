@@ -24,7 +24,6 @@ public class CreateSongRequest {
     @Min(value = 1, message = "Duration must be greater than 0")
     private Integer durationSeconds;
 
-    @NotBlank(message = "Audio URL is required")
     private String audioUrl;
 
     private String thumbnailUrl;
